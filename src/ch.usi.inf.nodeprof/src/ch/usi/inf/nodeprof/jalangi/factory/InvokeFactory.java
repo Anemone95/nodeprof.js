@@ -16,14 +16,15 @@
  * *****************************************************************************/
 package ch.usi.inf.nodeprof.jalangi.factory;
 
+import ch.usi.inf.nodeprof.ProfiledTagEnum;
+import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
+import ch.usi.inf.nodeprof.handlers.FunctionCallEventHandler;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
-
-import ch.usi.inf.nodeprof.ProfiledTagEnum;
-import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
-import ch.usi.inf.nodeprof.handlers.FunctionCallEventHandler;
+import com.oracle.truffle.js.runtime.objects.JSObject;
+import com.oracle.truffle.js.runtime.objects.Undefined;
 
 public class InvokeFactory extends AbstractFactory {
     private final ProfiledTagEnum tag; // can be INVOKE or NEW
@@ -45,7 +46,17 @@ public class InvokeFactory extends AbstractFactory {
             public void executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
                 if (pre != null) {
                     // TODO Jalangi's function iid/sid are set to be 0/0
-                    cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getFunction(inputs), getReceiver(inputs), makeArgs.executeArguments(inputs), isNew(), isInvoke(), 0, 0);
+                    Object ret = cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getFunction(inputs), getReceiver(inputs), makeArgs.executeArguments(inputs), isNew(), isInvoke(), 0, 0);
+                    if (ret != null && ret != Undefined.instance && JSObject.isJSObject(ret)) {
+                        Object prop = cbNode.interopLibrary.readMember(ret, "f");
+                        Object base = cbNode.interopLibrary.readMember(ret, "base");
+                        if (isNew()) {
+                            inputs[0] = prop;
+                        } else {
+                            inputs[0] = base;
+                            inputs[1] = prop;
+                        }
+                    }
                 }
             }
 

@@ -33,18 +33,20 @@ import ch.usi.inf.nodeprof.utils.Logger;
 public class ProfilerExecutionEventNode extends ExecutionEventNode {
     protected final EventContext context;
     protected final ProfiledTagEnum cb;
-    @Child BaseEventHandlerNode child;
+    @Child
+    BaseEventHandlerNode child;
     int hasOnEnter = 0;
     /**
      * A flag to switch on/off the profiling analysis: true => enabled, false => disabled
-     *
+     * <p>
      * by default the instrumentation is on. It can be updated with
      * ProfilerExecutionEventNode.updateEnabled.
-     *
+     * <p>
      * After disabled, this class acts as an empty ExecutionEventNode which can be fully optimized
      * out by the compiler
      */
-    @CompilationFinal private static boolean profilerEnabled = true;
+    @CompilationFinal
+    private static boolean profilerEnabled = true;
 
     public static boolean getEnabled() {
         return profilerEnabled;
@@ -59,7 +61,7 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
     }
 
     public ProfilerExecutionEventNode(ProfiledTagEnum cb, EventContext context,
-                    BaseEventHandlerNode child) {
+                                      BaseEventHandlerNode child) {
         this.context = context;
         this.cb = cb;
         this.cb.nodeCount++;
@@ -72,7 +74,7 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
 
     @Override
     protected void onInputValue(VirtualFrame frame, EventContext inputContext,
-                    int inputIndex, Object inputValue) {
+                                int inputIndex, Object inputValue) {
         if (!profilerEnabled) {
             return;
         }
@@ -83,8 +85,13 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         if (this.child.isLastIndex(getInputCount(), inputIndex)) {
             this.cb.preHitCount++;
             try {
-                this.child.executePre(frame, child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null);
-
+                Object[] inputVal = child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null;
+                this.child.executePre(frame, inputVal);
+                if (inputVal != null) {
+                    for (int i = 0; i < getInputCount(); i++) {
+                        saveInputValue(frame, inputIndex - getInputCount() + 1 + i, inputVal[i]);
+                    }
+                }
                 // allow for handler changes after executePre/Post
                 checkHandlerChanges();
             } catch (Throwable e) {
@@ -113,7 +120,6 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
             reportError(null, e);
         }
     }
-
     @Override
     protected void onReturnValue(VirtualFrame frame, Object result) {
         if (!profilerEnabled) {
@@ -126,6 +132,13 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
                 this.cb.postHitCount++;
                 inputs = child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null;
                 this.child.executePost(frame, result, inputs);
+                // TODO: if we want to save the input values
+//                if (inputs != null) {
+//                    for (int i = 0; i < getInputCount(); i++) {
+//                        // save input only necessary
+//                        saveInputValue(frame, i, inputs[i]);
+//                    }
+//                }
 
                 // allow for handler changes after executePre/Post
                 checkHandlerChanges();
@@ -151,7 +164,7 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         if (inputs != null) {
             for (int i = 0; i < inputs.length; i++) {
                 Logger.error(context.getInstrumentedSourceSection(),
-                                "\targ[" + i + "]: " + inputs[i]);
+                        "\targ[" + i + "]: " + inputs[i]);
             }
         }
         if (!GlobalConfiguration.IGNORE_JALANGI_EXCEPTION) {

@@ -23,6 +23,8 @@ import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.PropertyReadEventHandler;
+import com.oracle.truffle.js.runtime.objects.JSObject;
+import com.oracle.truffle.js.runtime.objects.Undefined;
 
 public class GetFieldFactory extends AbstractFactory {
 
@@ -51,7 +53,14 @@ public class GetFieldFactory extends AbstractFactory {
                             Object[] inputs) throws InteropException {
                 if (post != null) {
                     if (!this.isGlobal(inputs)) {
-                        cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(), convertResult(result), false, isOpAssign(), isMethodCall());
+                        Object ret = cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(), convertResult(result), false, isOpAssign(), isMethodCall());
+                        // FIXME: won't work...
+                        if (ret != null && ret != Undefined.instance && JSObject.isJSObject(ret)) {
+                            Object res = cbNode.interopLibrary.readMember(ret, "result");
+                            if (res!=null) {
+                                inputs[0] = res;
+                            }
+                        }
                     }
                 }
             }

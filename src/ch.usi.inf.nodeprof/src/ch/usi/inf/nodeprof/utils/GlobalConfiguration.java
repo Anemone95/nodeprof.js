@@ -19,6 +19,7 @@ package ch.usi.inf.nodeprof.utils;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.instrumentation.TruffleInstrument.Env;
+//import javassist.*;
 
 import ch.usi.inf.nodeprof.NodeProfCLI;
 
@@ -79,5 +80,18 @@ public class GlobalConfiguration {
         IGNORE_JALANGI_EXCEPTION = env.getOptions().get(NodeProfCLI.IGNORE_JALANGI_EXCEPTION);
         LOG_ABSOLUTE_PATH = env.getOptions().get(NodeProfCLI.LOG_ABSOLUTE_PATH);
         SYMBOLIC_LOCATIONS = env.getOptions().get(NodeProfCLI.SYMBOLIC_LOCATIONS);
+
+        // TODO: hot-patch graal.js maybe?
+//        ClassPool pool = ClassPool.getDefault();
+//
+//        CtClass ctClass = pool.get("JSFunctionCallNode.Invoke1Node");
+//
+//        CtMethod method = ctClass.getDeclaredMethod("createArguments");
+//
+//        method.setBody("{ System.out.println(\"Hello from modified method!\"); }");
+//
+//        ctClass.writeFile();
+//        Class<?> modifiedClass = ctClass.toClass();
+
     }
 }

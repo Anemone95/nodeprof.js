@@ -6,10 +6,10 @@ suite = {
     "suites" : [
       {
         "name" : "graal-nodejs",
-        "version" : "0135a41c557bc1519d12028f22b819c27110e52c",
+        "version" : "392a58b199dc906de09535a78467a7647cf5157b",
         "subdir" : True,
         "urls" : [
-          {"url" : "https://github.com/graalvm/graaljs.git", "kind" : "git"},
+          {"url" : "https://github.com/Anemone95/graaljs.git", "kind" : "git"},
         ]
       }
     ],
@@ -38,7 +38,7 @@ suite = {
       "sourceDirs" : ["src"],
       "dependencies" : [
         "graal-js:GRAALJS",
-        "graal-nodejs:TRUFFLENODE"
+        "graal-nodejs:TRUFFLENODE",
       ],
       "annotationProcessors" : ["truffle:TRUFFLE_DSL_PROCESSOR"],
       "javaCompliance" : "11+",

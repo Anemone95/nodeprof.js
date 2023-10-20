@@ -185,7 +185,7 @@ public abstract class AbstractFactory implements
     public class CallbackNode extends Node {
         @Node.Child DirectCallNode preCall = pre == null ? null : Truffle.getRuntime().createDirectCallNode(JSFunction.getCallTarget(pre));
         @Node.Child DirectCallNode postCall = post == null ? null : Truffle.getRuntime().createDirectCallNode(JSFunction.getCallTarget(post));
-        @Child private InteropLibrary interopLibrary = InteropLibrary.getFactory().createDispatched(3);
+        @Child public InteropLibrary interopLibrary = InteropLibrary.getFactory().createDispatched(3);
 
         private void checkDeactivate(Object ret, BaseEventHandlerNode handler) {
             if (ret != null && ret != Undefined.instance && JSObject.isJSObject(ret)) {
@@ -201,13 +201,14 @@ public abstract class AbstractFactory implements
             }
         }
 
-        public void preCall(BaseEventHandlerNode handler, Object... args) {
+        public Object preCall(BaseEventHandlerNode handler, Object... args) {
             assertNoStringLeak(args);
             if (pre != null) {
                 if (beforeCall()) {
                     try {
                         Object ret = preCall.call(args);
                         checkDeactivate(ret, handler);
+                        return ret;
                     } catch (JSInterruptedExecutionException e) {
                         Logger.error("execution cancelled probably due to timeout");
                     } catch (ThreadDeath e) {
@@ -221,15 +222,17 @@ public abstract class AbstractFactory implements
                     }
                 }
             }
+            return null;
         }
 
-        public void postCall(BaseEventHandlerNode handler, Object... args) {
+        public Object postCall(BaseEventHandlerNode handler, Object... args) {
             assertNoStringLeak(args);
             if (post != null) {
                 if (beforeCall()) {
                     try {
                         Object ret = postCall.call(args);
                         checkDeactivate(ret, handler);
+                        return ret;
                     } catch (JSInterruptedExecutionException e) {
                         Logger.error("execution cancelled probably due to timeout");
                     } finally {
@@ -237,6 +240,7 @@ public abstract class AbstractFactory implements
                     }
                 }
             }
+            return null;
         }
 
         private void assertNoStringLeak(Object[] args) {
