@@ -19,11 +19,14 @@ package ch.usi.inf.nodeprof.jalangi.factory;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.interop.InteropException;
+import com.oracle.truffle.js.aux.ModifiedResultStack;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.BinaryEventHandler;
 import ch.usi.inf.nodeprof.handlers.ConditionalEventHandler;
+import com.oracle.truffle.js.runtime.objects.JSObject;
+import com.oracle.truffle.js.runtime.objects.Undefined;
 
 public class ConditionalFactory extends AbstractFactory {
     private final boolean isBinary;
@@ -44,7 +47,13 @@ public class ConditionalFactory extends AbstractFactory {
                 public void executePost(VirtualFrame frame, Object result,
                                 Object[] inputs) throws InteropException {
                     if (post != null && isConditional()) {
-                        cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result));
+                        Object ret  = cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result));
+                        if (ret != null && ret != Undefined.instance && JSObject.isJSObject(ret)) {
+                            Object hookedResult = cbNode.interopLibrary.readMember(ret, "result");
+                            if (hookedResult instanceof Boolean) {
+                                ModifiedResultStack.results.put(getSourceSectionForIID(), hookedResult);
+                            }
+                        }
                     }
                 }
             };

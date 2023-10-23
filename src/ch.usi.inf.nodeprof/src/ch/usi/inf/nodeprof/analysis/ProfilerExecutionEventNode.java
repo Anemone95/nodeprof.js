@@ -132,13 +132,6 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
                 this.cb.postHitCount++;
                 inputs = child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null;
                 this.child.executePost(frame, result, inputs);
-                // TODO: if we want to save the input values
-//                if (inputs != null) {
-//                    for (int i = 0; i < getInputCount(); i++) {
-//                        // save input only necessary
-//                        saveInputValue(frame, i, inputs[i]);
-//                    }
-//                }
 
                 // allow for handler changes after executePre/Post
                 checkHandlerChanges();
