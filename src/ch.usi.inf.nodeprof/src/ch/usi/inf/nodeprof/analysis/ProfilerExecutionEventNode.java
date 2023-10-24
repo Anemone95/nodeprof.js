@@ -87,11 +87,6 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
             try {
                 Object[] inputVal = child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null;
                 this.child.executePre(frame, inputVal);
-                if (inputVal != null) {
-                    for (int i = 0; i < getInputCount(); i++) {
-                        saveInputValue(frame, inputIndex - getInputCount() + 1 + i, inputVal[i]);
-                    }
-                }
                 // allow for handler changes after executePre/Post
                 checkHandlerChanges();
             } catch (Throwable e) {
